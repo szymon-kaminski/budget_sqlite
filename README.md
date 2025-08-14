@@ -15,3 +15,15 @@
 ## 6. Program przechowuje pomiędzy uruchomieniami bazę wszystkich wydatków w pliku budget.db. Zapisuj i wczytuj stan używając modułu pickle. Jeżeli plik nie istnieje, to automatycznie stwórz nową, pustą bazę. Zauważ, że nie potrzebujemy podpolecenia init.
 
 ## 7. Wielkość wydatku musi być dodatnią liczbą. Gdzie umieścisz kod sprawdzający, czy jest to spełnione? W jaki sposób zgłosisz, że warunek nie jest spełniony?
+
+
+# Ćwiczenie: migracja przechowywania wydatków z pickle -> SQLite.
+
+
+## Nowa baza (SQLite): `data/budget.sqlite3`.
+## Komendy:
+  - `python M07_projekt.py add <amount> "<description>"`
+  - `python M07_projekt.py report`
+  - `python M07_projekt.py import-csv <file.csv>`
+  - `python M07_projekt.py export_python`
+  - `python M07_projekt.py migrate-to-sqlite` (jednorazowa)

@@ -40,7 +40,7 @@ python M07_projekt.py migrate-to-sqlite
 ```
 
 ### Output przykładowego report:
-```
+```txt
 --ID-- -AMOUNT- -BIG?- --DESCRIPTION----
    1     100.00        zakupy spożywcze
    2    1500.00  (!)   laptop

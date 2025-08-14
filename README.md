@@ -40,11 +40,12 @@ python M07_projekt.py migrate-to-sqlite
 ```
 
 ### Output przykładowego report:
-
+```
 --ID-- -AMOUNT- -BIG?- --DESCRIPTION----
    1     100.00        zakupy spożywcze
    2    1500.00  (!)   laptop
 Total= 1600.0
+```
 
 ## Różnice względem wersji pickle
 - Poprzednia wersja używała modułu pickle do przechowywania danych w pliku budget.db

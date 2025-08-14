@@ -21,9 +21,55 @@
 
 
 ## Nowa baza (SQLite): `data/budget.sqlite3`.
-## Komendy:
-  - `python M07_projekt.py add <amount> "<description>"`
-  - `python M07_projekt.py report`
-  - `python M07_projekt.py import-csv <file.csv>`
-  - `python M07_projekt.py export_python`
-  - `python M07_projekt.py migrate-to-sqlite` (jednorazowa)
+
+## Instalacja i uruchomienie
+```bash
+git clone <URL repozytorium>
+cd budget_sqlite
+pip install click
+```
+
+## Przykłady użycia
+```bash
+python M07_projekt.py add 100 "zakupy spożywcze"
+python M07_projekt.py add 1500 "laptop"
+python M07_projekt.py report
+python M07_projekt.py export-python
+python M07_projekt.py import-csv dane.csv
+python M07_projekt.py migrate-to-sqlite
+```
+
+### Output przykładowego report:
+
+--ID-- -AMOUNT- -BIG?- --DESCRIPTION----
+   1     100.00        zakupy spożywcze
+   2    1500.00  (!)   laptop
+Total= 1600.0
+
+## Różnice względem wersji pickle
+- Poprzednia wersja używała modułu pickle do przechowywania danych w pliku budget.db
+
+- Obecna wersja używa SQLite (data/budget.sqlite3)
+
+- Dodano jednorazową komendę migrate-to-sqlite do migracji istniejących danych z pickle
+
+## Jak zobaczyć zawartość bazy budget.sqlite3
+
+1. W terminalu (Python):
+```bash
+import sqlite3
+
+conn = sqlite3.connect("data/budget.sqlite3")
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM expenses")
+print(cursor.fetchall())
+conn.close()
+```
+
+2. Przez wbudowane narzędzie sqlite3 w konsoli:
+```bash
+sqlite3 data/budget.sqlite3
+sqlite> .tables
+sqlite> SELECT * FROM expenses;
+sqlite> .quit
+```

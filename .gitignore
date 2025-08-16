@@ -7,3 +7,4 @@ budget.db
 budget.pkl.bak
 *.sqlite3
 .DS_Store
+*.docx

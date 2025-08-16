@@ -39,6 +39,12 @@ python M07_projekt.py import-csv dane.csv
 python M07_projekt.py migrate-to-sqlite
 ```
 
+## Domyślnie używany jest SQLite. Możesz wskazać backend explicite:
+```bash
+python M07_projekt.py --backend sqlite report
+python M07_projekt.py --backend mysql add 100 "nowy laptop"
+```
+
 ### Output przykładowego report:
 ```txt
 --ID-- -AMOUNT- -BIG?- --DESCRIPTION----

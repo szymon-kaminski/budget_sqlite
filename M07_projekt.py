@@ -9,6 +9,7 @@ import shutil
 import click
 
 from storage_sqlite import SQLiteStorage
+from storage_mysql import MySQLStorage
 from db import init_db
 
 BIG_EXPENSE = 1000
@@ -31,6 +32,16 @@ class Expense:
 
     def __repr__(self) -> str:
         return f"Expense(id={self.id}, amount={self.amount:.2f}, description={self.description!r})"
+    
+
+def get_storage(backend: str):
+    """
+    Zwraca instancję magazynu danych zależnie od backendu.
+    """
+    if backend == "mysql":
+        return MySQLStorage()
+    return SQLiteStorage()
+
 
 # --- Funkcje legacy oparte na pickle: użyjemy tylko w migracji ---
 def read_or_init_budget() -> List[Expense]:
@@ -75,6 +86,26 @@ def cli():
     # Upewniamy się, że baza istnieje.
     init_db()
 
+@click.group()
+@click.option(
+    "--backend",
+    type=click.Choice(["sqlite", "mysql"]),
+    default=lambda: os.getenv("BUDGET_BACKEND", "sqlite"),
+    show_default=True,
+    help="Wybór backendu bazy danych.",
+)
+@click.pass_context
+def cli(ctx, backend):
+    """
+    Budżet domowy: add, report, import-csv, export-python, migrate-to-sqlite, migrate-sqlite-to-mysql
+    """
+    ctx.ensure_object(dict)
+    ctx.obj["backend"] = backend
+
+    # Upewniamy się, że baza istnieje
+    init_db()
+
+
 @cli.command()
 @click.argument('amount', type=float)
 @click.argument('description')
@@ -86,7 +117,7 @@ def add(amount: float, description: str):
     """
     try:
         _ = Expense(id=0, amount=amount, description=description)  # walidacja
-        st = SQLiteStorage()
+        st = get_storage(ctx.obj["backend"])
         new_id = st.add(amount=amount, description=description)
         print(f":-)) SUCCESS (id={new_id})")
     except ValueError as e:
@@ -96,7 +127,7 @@ def add(amount: float, description: str):
 @cli.command()
 def report():
     """Wypisuje tabelę wydatków (SQLite)."""
-    st = SQLiteStorage()
+    st = get_storage(ctx.obj["backend"])
     rows = st.list_all()
     expenses = [to_expense(r) for r in rows]
     print_expenses(expenses)
@@ -108,7 +139,7 @@ def import_csv(csv_file: str) -> None:
     Import z CSV do SQLite.
     CSV powinien mieć nagłówki: amount,description
     """
-    st = SQLiteStorage()
+    st = get_storage(ctx.obj["backend"])
     count = 0
     try:
         with open(csv_file, encoding='utf-8') as stream:
@@ -131,7 +162,7 @@ def export_python():
     Wypisuje listę wydatków jako repr(Expense).
     (Tak jak wcześniej, ale już z SQLite.)
     """
-    st = SQLiteStorage()
+    st = get_storage(ctx.obj["backend"])
     rows = st.list_all()
     for r in rows:
         print(repr(to_expense(r)))
@@ -150,7 +181,7 @@ def migrate_to_sqlite():
         print("Brak danych w starym pliku pickle (budget.db). Nic do migracji.")
         return
 
-    st = SQLiteStorage()
+    st = get_storage(ctx.obj["backend"])
     for e in legacy_expenses:
         # Zakładamy, że e to obiekt Expense (tak było w oryginalnej wersji)
         st.add(amount=e.amount, description=e.description)
@@ -158,8 +189,23 @@ def migrate_to_sqlite():
     if os.path.exists(DB_FILENAME):
         shutil.move(DB_FILENAME, "budget.pkl.bak")
 
-    print(f"Migracja zakończona. Przeniesiono {len(legacy_expenses)} rekordów. 🥳")
+    print(f"Migracja zakończona. Przeniesiono {len(legacy_expenses)} rekordów.")
 # -----------------------------------------------------------------
+
+@cli.command(name="migrate-sqlite-to-mysql")
+def migrate_sqlite_to_mysql():
+    """
+    Jednorazowa migracja: przenosi dane z SQLite do MySQL.
+    """
+    sqlite_st = SQLiteStorage()
+    mysql_st = MySQLStorage()
+
+    rows = sqlite_st.list_all()
+    for r in rows:
+        mysql_st.add(amount=r["amount"], description=r["description"])
+
+    print(f"Migracja zakończona. Przeniesiono {len(rows)} rekordów z SQLite do MySQL.")
+
 
 if __name__ == "__main__":
     cli()

@@ -19,6 +19,18 @@
 
 # Ćwiczenie: migracja przechowywania wydatków z pickle -> SQLite.
 
+## Struktura projektu
+```txt
+budget_sqlite/
+├── M07_projekt.py        # główny plik CLI
+├── storage_sqlite.py     # obsługa SQLite
+├── storage_mysql.py      # obsługa MySQL
+├── db.py                 # inicjalizacja bazy
+├── data/                 # katalog z plikiem SQLite
+├── .env.template         # szablon konfiguracji
+├── requirements.txt      # zależności
+└── README.md             # dokumentacja
+```
 
 ## Nowa baza (SQLite): `data/budget.sqlite3`.
 

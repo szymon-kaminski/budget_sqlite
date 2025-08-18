@@ -80,3 +80,22 @@ sqlite> .tables
 sqlite> SELECT * FROM expenses;
 sqlite> .quit
 ```
+
+## MySQL backend
+
+- Wymagane: `mysql-connector-python`, `python-dotenv`
+- Konfiguracja przez `.env` (patrz `.env.template`)
+- Wybór backendu: zmienna `BUDGET_BACKEND=mysql` lub flaga `--backend mysql`
+
+### Tworzenie bazy i użytkownika (MySQL)
+```sql
+CREATE DATABASE budget DEFAULT CHARACTER SET utf8mb4;
+CREATE USER 'budget_user'@'%' IDENTIFIED BY 'super_tajne_haslo';
+GRANT ALL PRIVILEGES ON budget.* TO 'budget_user'@'%';
+FLUSH PRIVILEGES;
+```
+
+### Migracja danych (SQLite → MySQL)
+```bash
+python M07_projekt.py migrate-sqlite-to-mysql
+```

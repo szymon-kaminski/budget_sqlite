@@ -80,11 +80,6 @@ def print_expenses(expenses: List[Expense]) -> None:
     else:
         print("Nie wprowadziłeś jeszcze żadnego wydatku")
 
-@click.group()
-def cli():
-    """Budżet domowy: add, report, import-csv, export-python, migrate-to-sqlite"""
-    # Upewniamy się, że baza istnieje.
-    init_db()
 
 @click.group()
 @click.option(
@@ -109,9 +104,10 @@ def cli(ctx, backend):
 @cli.command()
 @click.argument('amount', type=float)
 @click.argument('description')
-def add(amount: float, description: str):
+@click.pass_context
+def add(ctx, amount: float, description: str):
     """
-    Dodaje nowy wydatek do bazy SQLite.
+    Dodaje nowy wydatek do wybranego backendu (SQLite/MySQL).
     Walidacja kwoty odbywa się w Expense.__post_init__,
     więc tworzymy tymczasowy obiekt tylko po to, by złapać ewentualny błąd.
     """
@@ -125,18 +121,20 @@ def add(amount: float, description: str):
         sys.exit(1)
 
 @cli.command()
-def report():
-    """Wypisuje tabelę wydatków (SQLite)."""
+@click.pass_context
+def report(ctx):
+    """Wypisuje tabelę wydatków (SQLite/MySQL)."""
     st = get_storage(ctx.obj["backend"])
     rows = st.list_all()
     expenses = [to_expense(r) for r in rows]
     print_expenses(expenses)
 
 @cli.command()
+@click.pass_context
 @click.argument('csv_file')
-def import_csv(csv_file: str) -> None:
+def import_csv(ctx, csv_file: str) -> None:
     """
-    Import z CSV do SQLite.
+    Wypisuje tabelę wydatków (SQLite/MySQL).
     CSV powinien mieć nagłówki: amount,description
     """
     st = get_storage(ctx.obj["backend"])
@@ -157,10 +155,11 @@ def import_csv(csv_file: str) -> None:
     print(f":-) zaimportowano {count} rekordów")
 
 @cli.command()
-def export_python():
+@click.pass_context
+def export_python(ctx):
     """
     Wypisuje listę wydatków jako repr(Expense).
-    (Tak jak wcześniej, ale już z SQLite.)
+    (Tak jak wcześniej, ale już z (SQLite/MySQL).)
     """
     st = get_storage(ctx.obj["backend"])
     rows = st.list_all()
@@ -169,7 +168,8 @@ def export_python():
 
 # --- Nowa komenda: migracja z pickle -> SQLite -------------------
 @cli.command(name="migrate-to-sqlite")
-def migrate_to_sqlite():
+@click.pass_context
+def migrate_to_sqlite(ctx):
     """
     Jednorazowa migracja: czyta stary plik pickle (budget.db),
     zapisuje wszystko do SQLite (data/budget.sqlite3),
